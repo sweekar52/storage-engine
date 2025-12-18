@@ -1,0 +1,19 @@
+# Build files
+*.o
+*.out
+storage-engine
+mydb
+
+# Data files (our actual storage files)
+data/*.sst
+data/*.log
+data/*.wal
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+
+# OS files
+.DS_Store
+Thumbs.db
