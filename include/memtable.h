@@ -6,6 +6,7 @@
 #include <optional>
 
 class MemTable {
+    friend class SSTable;
 private:
     std::map<std::string, std::string> data;
     size_t size_bytes;

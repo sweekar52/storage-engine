@@ -2,7 +2,7 @@ CXX = g++
 CXXFLAGS = -std=c++17 -Wall -Wextra -I./include
 LDFLAGS = 
 
-SOURCES = src/main.cpp src/memtable.cpp
+SOURCES = src/main.cpp src/memtable.cpp src/sstable.cpp
 OBJECTS = $(SOURCES:.cpp=.o)
 TARGET = storage-engine
 
