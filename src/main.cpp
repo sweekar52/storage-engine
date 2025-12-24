@@ -1,41 +1,61 @@
 #include <iostream>
-#include "../include/memtable.h"
-#include "../include/sstable.h"
+#include "../include/storage_engine.h"
 
 int main() {
-    std::cout << "Testing MemTable and SSTable..." << std::endl;
+    std::cout << "=== Testing StorageEngine ===" << std::endl;
     
-    // Test 1: Create and populate MemTable
-    MemTable mem;
-    mem.put("apple", "red fruit");
-    mem.put("banana", "yellow fruit");
-    mem.put("cherry", "red fruit");
-    mem.put("date", "sweet fruit");
+    StorageEngine db("./data/mydb");
     
-    std::cout << "MemTable count: " << mem.count() << std::endl;
-    std::cout << "MemTable size: " << mem.get_size() << " bytes" << std::endl;
+    // Test 1: Basic put and get
+    std::cout << "\n--- Test 1: Basic Operations ---" << std::endl;
+    db.put("name", "Alice");
+    db.put("age", "25");
+    db.put("city", "NYC");
     
-    // Test 2: Write MemTable to SSTable
-    SSTable sst("data/test_001.sst");
-    sst.write_from_memtable(mem);
-    
-    // Test 3: Read from SSTable
-    auto result1 = sst.get("banana");
-    if (result1) {
-        std::cout << "Read from SSTable - banana = " << *result1 << std::endl;
+    auto result = db.get("name");
+    if (result) {
+        std::cout << "name = " << *result << std::endl;
     }
     
-    auto result2 = sst.get("apple");
-    if (result2) {
-        std::cout << "Read from SSTable - apple = " << *result2 << std::endl;
+    // Test 2: Update a key
+    std::cout << "\n--- Test 2: Update Key ---" << std::endl;
+    db.put("name", "Bob");
+    result = db.get("name");
+    if (result) {
+        std::cout << "Updated name = " << *result << std::endl;
     }
     
-    // Test 4: Try to get non-existent key
-    auto result3 = sst.get("mango");
-    if (!result3) {
-        std::cout << "mango not found in SSTable (correct!)" << std::endl;
+    // Test 3: Write enough data to trigger flush
+    std::cout << "\n--- Test 3: Trigger Flush ---" << std::endl;
+    std::cout << "Writing data to fill MemTable..." << std::endl;
+    
+    for (int i = 0; i < 500000; i++) {
+        std::string key = "user:" + std::to_string(i);
+        std::string value = "User number " + std::to_string(i) + " with some extra data to fill up memory faster";
+        db.put(key, value);
     }
     
-    std::cout << "\nAll tests passed!" << std::endl;
+    std::cout << "MemTable size: " << db.get_memtable_size() << " bytes" << std::endl;
+    std::cout << "SSTable count: " << db.get_sstable_count() << std::endl;
+    
+    // Test 4: Read data (might be in MemTable or SSTable)
+    std::cout << "\n--- Test 4: Read After Flush ---" << std::endl;
+    auto user100 = db.get("user:100");
+    if (user100) {
+        std::cout << "user:100 = " << *user100 << std::endl;
+    }
+    
+    auto user999 = db.get("user:999");
+    if (user999) {
+        std::cout << "user:999 = " << *user999 << std::endl;
+    }
+    
+    // Test 5: Non-existent key
+    auto missing = db.get("nonexistent");
+    if (!missing) {
+        std::cout << "nonexistent key not found (correct!)" << std::endl;
+    }
+    
+    std::cout << "\n=== All tests passed! ===" << std::endl;
     return 0;
 }
